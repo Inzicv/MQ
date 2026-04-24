@@ -1,8 +1,8 @@
 import streamlit as st
 import re
 
-# --- LOGIQUE DE TRANSFORMATION ---
 def transform_mq_clean(input_text, obj_type):
+    # Mapping des types d'objets
     type_map = {"QUEUE": "QLOCAL", "CHANNEL": "CHANNEL", "PROCESS": "PROCESS", "QMGR": "QMGR"}
     to_ignore = ['CURDEPTH', 'IPPROCS', 'OPPROCS', 'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME', 'LPIPROCS', 'LOPPROCS']
 
@@ -25,57 +25,56 @@ def transform_mq_clean(input_text, obj_type):
                 continue
             attrs[key] = f"({val})" if val is not None else ""
 
-        # Construction du header
-        header = f"ALTER QMGR +" if obj_type == "QMGR" else f"DEFINE {actual_type}({obj_name}) +"
-        command = [header, "   REPLACE +"]
+        # --- RECONSTRUCTION DE LA COMMANDE ---
+        if obj_type == "QMGR":
+            command = ["ALTER QMGR +"]
+        else:
+            command = [f"DEFINE {actual_type}({obj_name}) +"]
 
         attr_list = list(attrs.items())
+        
         # Injection MCAUSER pour les SVRCONN
         if "CHLTYPE(SVRCONN)" in block and "MCAUSER" not in attrs:
             attr_list.append(("MCAUSER", "('MQM.ADMIN2')"))
 
+        # On boucle sur les attributs
         for i, (k, v) in enumerate(attr_list):
             line = f"   {k}{v}"
-            if i < len(attr_list) - 1: line += " +"
+            # On met TOUJOURS un + après un attribut car le REPLACE (ou la suite) arrive
+            line += " +"
             command.append(line)
 
+        # --- LA CLAUSE FINALE ---
+        if obj_type != "QMGR":
+            command.append("   REPLACE") # Le REPLACE ferme la commande sans +
+        else:
+            # Pour le QMGR, on retire le dernier + du dernier attribut car pas de REPLACE
+            command[-1] = command[-1].rstrip(' +')
+
         final_output.append("\n".join(command))
+    
     return "\n\n".join(final_output)
 
 # --- INTERFACE STREAMLIT ---
-st.set_page_config(page_title="HPN MQ Migration", layout="wide")
-st.title("🚀 MQ Migration Tool (V5 to V8)")
+st.set_page_config(page_title="MQ Migration HPN", layout="wide")
+st.title("🚀 MQ Migration Transformer V5 -> V8")
 
-# Sidebar pour les options
 with st.sidebar:
-    st.header("Options de sortie")
-    obj_type = st.selectbox("Type d'objet :", ["QUEUE", "CHANNEL", "PROCESS", "QMGR"])
-    extension = st.radio("Format du fichier :", [".txt", ".mqsc"], index=0)
+    st.header("Paramètres")
+    obj_selected = st.selectbox("Type d'objet source :", ["QUEUE", "CHANNEL", "PROCESS", "QMGR"])
+    ext = st.radio("Format de sortie :", [".txt", ".mqsc"])
 
-# Main
-col1, col2 = st.columns(2)
+c1, c2 = st.columns(2)
+with c1:
+    src = st.text_area("Colle ta conf V5 ici :", height=400)
+    up = st.file_uploader("Ou upload un fichier", type="txt")
 
-with col1:
-    st.subheader("Source (V5)")
-    uploaded_file = st.file_uploader("Joindre un fichier", type="txt")
-    text_input = st.text_area("Ou coller ici :", height=400)
+data = up.read().decode("utf-8") if up else src
 
-input_data = uploaded_file.read().decode("utf-8") if uploaded_file else text_input
-
-with col2:
-    st.subheader("Résultat (V8)")
-    if input_data:
-        result = transform_mq_clean(input_data, obj_type)
-        st.code(result, language="sql")
-        
-        # Nom du fichier dynamique
-        output_filename = f"MIGRATE_{obj_type}{extension}"
-        
-        st.download_button(
-            label=f"📥 Télécharger en {extension}",
-            data=result,
-            file_name=output_filename,
-            mime="text/plain"
-        )
+with c2:
+    if data:
+        res = transform_mq_clean(data, obj_selected)
+        st.code(res, language="sql")
+        st.download_button("📥 Télécharger", res, f"MIGRATE_{obj_selected}{ext}")
     else:
-        st.info("Colle ou upload des données pour voir la magie.")
+        st.info("En attente de données...")
