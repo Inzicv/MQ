@@ -2,53 +2,64 @@ import streamlit as st
 import re
 
 def transform_mq_clean(input_text, obj_type):
-    # Mapping des types d'objets
     type_map = {"QUEUE": "QLOCAL", "CHANNEL": "CHANNEL", "PROCESS": "PROCESS", "QMGR": "QMGR"}
-    to_ignore = ['CURDEPTH', 'IPPROCS', 'OPPROCS', 'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME', 'LPIPROCS', 'LOPPROCS']
+    
+    # On ne vire QUE le strict minimum (stats et dates)
+    to_ignore = [
+        'CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS',
+        'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME'
+    ]
 
     blocks = [b.strip() for b in input_text.split('\n\n') if b.strip()]
     final_output = []
 
     for block in blocks:
-        tokens = re.findall(r'([A-Z0-9]+)\s*(?:\((.*?)\))?', block)
+        # Cette regex est magique : elle attrape TOUT ce qui a une parenthèse ou les mots seuls
+        # Elle gère les espaces, les retours à la ligne, etc.
+        pattern = r'([A-Z0-9]+)\s*\((.*?)\)|([A-Z0-9]{3,})'
+        matches = re.findall(pattern, block)
+        
         attrs = {}
         obj_name = ""
         actual_type = type_map.get(obj_type, "QLOCAL")
 
-        for key, val in tokens:
+        for m in matches:
+            # m[0] est la clé, m[1] la valeur si parenthèses. m[2] est le mot si pas de parenthèses.
+            key = m[0] if m[0] else m[2]
+            val = m[1] if m[0] else None
+            
             if key in to_ignore: continue
+            
+            # Nettoyage de la valeur
+            clean_val = "" if (val is None or val.strip() == "") else val.strip()
+
+            # Identification du nom et du type d'objet
             if key == obj_type:
-                obj_name = val
+                obj_name = clean_val
                 continue
             if key == "TYPE" and obj_type == "QUEUE":
-                actual_type = val
+                actual_type = clean_val
                 continue
-            attrs[key] = f"({val})" if val is not None else ""
+            
+            # On stocke l'attribut
+            attrs[key] = f"({clean_val})" if val is not None else ""
 
-        # --- RECONSTRUCTION DE LA COMMANDE ---
-        if obj_type == "QMGR":
-            command = ["ALTER QMGR +"]
-        else:
-            command = [f"DEFINE {actual_type}({obj_name}) +"]
+        # --- RECONSTRUCTION ---
+        header = f"ALTER QMGR +" if obj_type == "QMGR" else f"DEFINE {actual_type}({obj_name}) +"
+        command = [header]
 
         attr_list = list(attrs.items())
         
-        # Injection MCAUSER pour les SVRCONN
+        # Sécurité 2035 pour SVRCONN
         if "CHLTYPE(SVRCONN)" in block and "MCAUSER" not in attrs:
             attr_list.append(("MCAUSER", "('MQM.ADMIN2')"))
 
-        # On boucle sur les attributs
         for i, (k, v) in enumerate(attr_list):
-            line = f"   {k}{v}"
-            # On met TOUJOURS un + après un attribut car le REPLACE (ou la suite) arrive
-            line += " +"
-            command.append(line)
+            command.append(f"   {k}{v} +")
 
-        # --- LA CLAUSE FINALE ---
         if obj_type != "QMGR":
-            command.append("   REPLACE") # Le REPLACE ferme la commande sans +
+            command.append("   REPLACE")
         else:
-            # Pour le QMGR, on retire le dernier + du dernier attribut car pas de REPLACE
             command[-1] = command[-1].rstrip(' +')
 
         final_output.append("\n".join(command))
