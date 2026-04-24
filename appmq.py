@@ -4,75 +4,95 @@ import re
 # --- LOGIQUE DE TRANSFORMATION ---
 def transform_mq_clean(input_text, obj_type):
     type_map = {"QUEUE": "QLOCAL", "CHANNEL": "CHANNEL", "PROCESS": "PROCESS", "QMGR": "QMGR"}
-    to_ignore = ['CURDEPTH', 'IPPROCS', 'OPPROCS', 'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME', 'LPIPROCS', 'LOPPROCS']
-
+    # On ignore les stats et les dates
+    to_ignore = ['CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS', 'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME']
+    
     blocks = [b.strip() for b in input_text.split('\n\n') if b.strip()]
     final_output = []
-
+    
     for block in blocks:
-        tokens = re.findall(r'([A-Z0-9]+)\s*(?:\((.*?)\))?', block)
+        # Regex pour capturer les attributs
+        pattern = r'([A-Z0-9]+)\s*\((.*?)\)|([A-Z0-9]{3,})'
+        matches = re.findall(pattern, block)
         attrs = {}
         obj_name = ""
         actual_type = type_map.get(obj_type, "QLOCAL")
-
-        for key, val in tokens:
+        
+        for m in matches:
+            key = m[0] if m[0] else m[2]
+            val = m[1] if m[0] else None
             if key in to_ignore: continue
+            clean_val = "" if (val is None or val.strip() == "") else val.strip()
             if key == obj_type:
-                obj_name = val
+                obj_name = clean_val
                 continue
             if key == "TYPE" and obj_type == "QUEUE":
-                actual_type = val
+                actual_type = clean_val
                 continue
-            attrs[key] = f"({val})" if val is not None else ""
-
+            attrs[key] = f"({clean_val})" if val is not None else ""
+            
         header = f"ALTER QMGR +" if obj_type == "QMGR" else f"DEFINE {actual_type}({obj_name}) +"
-        command = [header, "   REPLACE +"]
-
+        command = [header]
         attr_list = list(attrs.items())
+        
         if "CHLTYPE(SVRCONN)" in block and "MCAUSER" not in attrs:
             attr_list.append(("MCAUSER", "('MQM.ADMIN2')"))
-
+            
         for i, (k, v) in enumerate(attr_list):
-            line = f"   {k}{v}"
-            if i < len(attr_list) - 1: line += " +"
-            command.append(line)
-
+            command.append(f"   {k}{v} +")
+            
+        if obj_type != "QMGR":
+            command.append("   REPLACE")
+        else:
+            command[-1] = command[-1].rstrip(' +')
+            
         final_output.append("\n".join(command))
     return "\n\n".join(final_output)
 
-# --- INTERFACE WEB (STREAMLIT) ---
-st.set_page_config(page_title="MQ Migration Tool", page_icon="🚀")
-st.title("🚀 HPN MQ Migration Transformer")
-st.markdown("Transforme tes confs **V5 (Guardian)** en **V8 (OSS)** proprement.")
+# --- INITIALISATION ---
+if 'master_script' not in st.session_state:
+    st.session_state.master_script = ""
 
-# 1. Choix du type
-obj_type = st.selectbox("Quel type d'objet transformons-nous ?", ["QUEUE", "CHANNEL", "PROCESS", "QMGR"])
+# --- INTERFACE ---
+st.set_page_config(page_title="MQ Mass Importer", layout="wide")
+st.title("🚀 MQ Mass Import Creator (V5 -> V8)")
 
-# 2. Input (Fichier ou Texte)
-st.subheader("Source")
-uploaded_file = st.file_uploader("Joindre un fichier .txt", type="txt")
-text_input = st.text_area("Ou colle la conf ici :", height=200)
-
-input_data = ""
-if uploaded_file:
-    input_data = uploaded_file.read().decode("utf-8")
-elif text_input:
-    input_data = text_input
-
-# 3. Transformation
-if input_data:
-    st.subheader("Résultat")
-    result = transform_mq_clean(input_data, obj_type)
+with st.sidebar:
+    st.header("⚙️ Paramètres du Projet")
+    # On demande le numéro du MT
+    mt_number = st.text_input("Numéro du Queue Manager (ex: 02, 03...)", value="01")
+    filename_output = f"import_MT{mt_number}.mqsc"
     
-    # Affichage aperçu
-    st.code(result, language="sql")
+    st.divider()
+    st.header("📦 Mon Script de Masse")
+    st.info(f"Fichier cible : **{filename_output}**")
     
-    # Bouton de téléchargement
+    if st.button("🗑️ Réinitialiser le script"):
+        st.session_state.master_script = ""
+        st.rerun()
+    
     st.download_button(
-        label="📥 Télécharger le fichier .mqsc",
-        data=result,
-        file_name=f"MIGRATE_{obj_type}.mqsc",
-        mime="text/plain"
+        label="📥 TÉLÉCHARGER LE SCRIPT COMPLET",
+        data=st.session_state.master_script,
+        file_name=filename_output,
+        mime="text/plain",
+        disabled=(st.session_state.master_script == "")
     )
-else:
-    st.info("En attente de données (colle du texte ou joins un fichier).")
+
+c1, c2 = st.columns(2)
+with c1:
+    obj_selected = st.selectbox("Type d'objet à ajouter :", ["QUEUE", "CHANNEL", "PROCESS", "QMGR"])
+    src = st.text_area("Colle la conf V5 ici :", height=300)
+    
+    if st.button("✨ Transformer et Ajouter") and src:
+        new_conf = transform_mq_clean(src, obj_selected)
+        separator = f"\n\n* {'='*50}\n* OBJET : {obj_selected} | SOURCE : MT{mt_number}\n* {'='*50}\n\n"
+        st.session_state.master_script += separator + new_conf
+        st.success(f"Config ajoutée au script MT{mt_number} !")
+
+with c2:
+    st.subheader(f"Aperçu du script : {filename_output}")
+    if st.session_state.master_script:
+        st.code(st.session_state.master_script, language="sql")
+    else:
+        st.info("Ajoute des configurations pour générer le script.")
