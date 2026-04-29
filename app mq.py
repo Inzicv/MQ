@@ -3,13 +3,18 @@ import re
 
 def transform_mq_clean(input_text, obj_type):
     type_map = {"QUEUE": "QLOCAL", "CHANNEL": "CHANNEL", "PROCESS": "PROCESS", "QMGR": "QMGR"}
-    to_ignore = ['CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS', 'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME']
+    
+    # On ne vire QUE le strict nécessaire (stats dynamiques et dates)
+    # Tout le reste (DEFPRESP, CLWL..., etc.) sera conservé
+    to_ignore = [
+        'CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS',
+        'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME'
+    ]
     
     blocks = [b.strip() for b in input_text.split('\n\n') if b.strip()]
     final_output = []
     
     for block in blocks:
-        # Regex dynamique pour attraper les paramètres Clé(Valeur) ou Clé seule
         pattern = r'([A-Z0-9]+)\s*\((.*?)\)|([A-Z0-9]{3,})'
         matches = re.findall(pattern, block)
         attrs = {}
@@ -19,9 +24,7 @@ def transform_mq_clean(input_text, obj_type):
         for m in matches:
             key = m[0] if m[0] else m[2]
             val = m[1] if m[0] else None
-            
             if key in to_ignore: continue
-            
             clean_val = "" if (val is None or val.strip() == "") else val.strip()
 
             if key == obj_type:
@@ -30,18 +33,14 @@ def transform_mq_clean(input_text, obj_type):
             if key == "TYPE" and obj_type == "QUEUE":
                 actual_type = clean_val
                 continue
-            
             attrs[key] = f"({clean_val})" if val is not None else ""
 
         # --- RECONSTRUCTION ---
-        if obj_type == "QMGR":
-            command = ["ALTER QMGR +"]
-        else:
-            command = [f"DEFINE {actual_type}({obj_name}) +"]
+        header = f"ALTER QMGR +" if obj_type == "QMGR" else f"DEFINE {actual_type}({obj_name}) +"
+        command = [header]
 
-        # --- LOGIQUE MCAUSER (Appliquée à tous les CHANNELS) ---
+        # Forçage MCAUSER pour les Channels
         if obj_type == "CHANNEL":
-            # On force la valeur MQM.ADMIN pour la sécurité
             attrs["MCAUSER"] = "(MQM.ADMIN2)"
 
         attr_list = list(attrs.items())
@@ -56,7 +55,7 @@ def transform_mq_clean(input_text, obj_type):
         final_output.append("\n".join(command))
     
     return "\n\n".join(final_output)
-
+    
 # --- INTERFACE STREAMLIT ---
 st.set_page_config(page_title="MQ Migration HPN", layout="wide")
 st.title("🚀 MQ Migration Transformer V5 -> V8")
