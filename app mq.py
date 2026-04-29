@@ -3,37 +3,27 @@ import re
 
 def transform_mq_clean(input_text, obj_type):
     type_map = {"QUEUE": "QLOCAL", "CHANNEL": "CHANNEL", "PROCESS": "PROCESS", "QMGR": "QMGR"}
+    to_ignore = ['CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS', 'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME']
     
-    # On ne vire QUE le strict minimum (stats et dates)
-    to_ignore = [
-        'CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS',
-        'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME'
-    ]
-
     blocks = [b.strip() for b in input_text.split('\n\n') if b.strip()]
     final_output = []
-
+    
     for block in blocks:
-        # Cette regex est magique : elle attrape TOUT ce qui a une parenthèse ou les mots seuls
-        # Elle gère les espaces, les retours à la ligne, etc.
+        # Regex dynamique pour attraper les paramètres Clé(Valeur) ou Clé seule
         pattern = r'([A-Z0-9]+)\s*\((.*?)\)|([A-Z0-9]{3,})'
         matches = re.findall(pattern, block)
-        
         attrs = {}
         obj_name = ""
         actual_type = type_map.get(obj_type, "QLOCAL")
-
+        
         for m in matches:
-            # m[0] est la clé, m[1] la valeur si parenthèses. m[2] est le mot si pas de parenthèses.
             key = m[0] if m[0] else m[2]
             val = m[1] if m[0] else None
             
             if key in to_ignore: continue
             
-            # Nettoyage de la valeur
             clean_val = "" if (val is None or val.strip() == "") else val.strip()
 
-            # Identification du nom et du type d'objet
             if key == obj_type:
                 obj_name = clean_val
                 continue
@@ -41,19 +31,20 @@ def transform_mq_clean(input_text, obj_type):
                 actual_type = clean_val
                 continue
             
-            # On stocke l'attribut
             attrs[key] = f"({clean_val})" if val is not None else ""
 
         # --- RECONSTRUCTION ---
-        header = f"ALTER QMGR +" if obj_type == "QMGR" else f"DEFINE {actual_type}({obj_name}) +"
-        command = [header]
+        if obj_type == "QMGR":
+            command = ["ALTER QMGR +"]
+        else:
+            command = [f"DEFINE {actual_type}({obj_name}) +"]
+
+        # --- LOGIQUE MCAUSER (Appliquée à tous les CHANNELS) ---
+        if obj_type == "CHANNEL":
+            # On force la valeur MQM.ADMIN pour la sécurité
+            attrs["MCAUSER"] = "(MQM.ADMIN)"
 
         attr_list = list(attrs.items())
-        
-        # Sécurité 2035 pour SVRCONN
-        if "CHLTYPE(SVRCONN)" in block and "MCAUSER" not in attrs:
-            attr_list.append(("MCAUSER", "('MQM.ADMIN2')"))
-
         for i, (k, v) in enumerate(attr_list):
             command.append(f"   {k}{v} +")
 
