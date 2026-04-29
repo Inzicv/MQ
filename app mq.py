@@ -3,43 +3,57 @@ import re
 
 def transform_mq_clean(input_text, obj_type):
     type_map = {"QUEUE": "QLOCAL", "CHANNEL": "CHANNEL", "PROCESS": "PROCESS", "QMGR": "QMGR"}
+    to_ignore = ['CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS', 'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME']
     
-    # On ne vire QUE le strict nécessaire (stats dynamiques et dates)
-    # Tout le reste (DEFPRESP, CLWL..., etc.) sera conservé
-    to_ignore = [
-        'CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS',
-        'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME'
-    ]
+    # --- NETTOYAGE DES ÉLÉMENTS POLLUANTS ---
+    # On découpe le texte par les codes AMQ pour isoler chaque objet
+    # La regex cherche "AMQ" suivi de n'importe quoi jusqu'au début de la conf suivante
+    raw_blocks = re.split(r'AMQ\d{4}:.*?\n', input_text)
     
-    blocks = [b.strip() for b in input_text.split('\n\n') if b.strip()]
     final_output = []
     
-    for block in blocks:
+    for block in raw_blocks:
+        # On ignore le bloc s'il est vide ou s'il ne contient que l'invite "MQSC >"
+        block = block.replace("MQSC >", "").strip()
+        if not block:
+            continue
+            
+        # --- LOGIQUE DE PARSING (REGEX DYNAMIQUE) ---
         pattern = r'([A-Z0-9]+)\s*\((.*?)\)|([A-Z0-9]{3,})'
         matches = re.findall(pattern, block)
+        
         attrs = {}
         obj_name = ""
         actual_type = type_map.get(obj_type, "QLOCAL")
         
+        # On vérifie si on a bien trouvé l'objet attendu dans ce bloc
+        found_main_obj = False
+        
         for m in matches:
             key = m[0] if m[0] else m[2]
             val = m[1] if m[0] else None
+            
             if key in to_ignore: continue
             clean_val = "" if (val is None or val.strip() == "") else val.strip()
 
             if key == obj_type:
                 obj_name = clean_val
+                found_main_obj = True
                 continue
             if key == "TYPE" and obj_type == "QUEUE":
                 actual_type = clean_val
                 continue
+            
             attrs[key] = f"({clean_val})" if val is not None else ""
+
+        # Si le bloc ne contient pas l'objet sélectionné, on passe au suivant
+        if not found_main_obj:
+            continue
 
         # --- RECONSTRUCTION ---
         header = f"ALTER QMGR +" if obj_type == "QMGR" else f"DEFINE {actual_type}({obj_name}) +"
         command = [header]
 
-        # Forçage MCAUSER pour les Channels
         if obj_type == "CHANNEL":
             attrs["MCAUSER"] = "(MQM.ADMIN2)"
 
