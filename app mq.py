@@ -38,6 +38,11 @@ def transform_mq_clean(input_text, obj_type):
 
             # Identification du nom (ex: CHANNEL(CH.MSDD.MT01))
             if key == obj_type:
+                # SI LE NOM EST UN ASTERISQUE, ON IGNORE LE BLOC COMPLET
+                if clean_val == "*":
+                    found_main_obj = False
+                    break 
+                
                 obj_name = clean_val
                 found_main_obj = True
                 continue
