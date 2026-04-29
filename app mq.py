@@ -58,19 +58,20 @@ def transform_mq_clean(input_text, obj_type):
         if not found_main_obj:
             continue
 
-        # 3. RECONSTRUCTION DU SCRIPT V8
-        # Pour les Channels, on précise le CHLTYPE juste après le nom
+        # --- RECONSTRUCTION en V8 ---
         if obj_type == "CHANNEL":
-            header = f"DEFINE CHANNEL({obj_name}) CHLTYPE({actual_type}) +"
-            attrs["MCAUSER"] = "(MQM.ADMIN)" # Ta règle de sécurité
-            # On supprime CHLTYPE des attributs car il est déjà dans le header
-            attrs.pop("CHLTYPE", None)
+            # On met un + et on passe à la ligne après le nom du canal
+            header = f"DEFINE CHANNEL({obj_name}) +"
+            command = [header]
+            # On remet le CHLTYPE dans les attributs pour qu'il soit traité normalement
+            attrs["CHLTYPE"] = f"({actual_type})"
+            attrs["MCAUSER"] = "(MQM.ADMIN2)" 
         elif obj_type == "QMGR":
             header = "ALTER QMGR +"
+            command = [header]
         else:
             header = f"DEFINE {actual_type}({obj_name}) +"
-
-        command = [header]
+            command = [header]
         
         # Ajout de tous les attributs capturés
         attr_list = list(attrs.items())
