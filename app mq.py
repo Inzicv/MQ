@@ -42,7 +42,7 @@ def transform_mq_clean(input_text, obj_type):
         # --- LOGIQUE MCAUSER (Appliquée à tous les CHANNELS) ---
         if obj_type == "CHANNEL":
             # On force la valeur MQM.ADMIN pour la sécurité
-            attrs["MCAUSER"] = "(MQM.ADMIN)"
+            attrs["MCAUSER"] = "(MQM.ADMIN2)"
 
         attr_list = list(attrs.items())
         for i, (k, v) in enumerate(attr_list):
