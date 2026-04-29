@@ -5,62 +5,74 @@ def transform_mq_clean(input_text, obj_type):
     type_map = {"QUEUE": "QLOCAL", "CHANNEL": "CHANNEL", "PROCESS": "PROCESS", "QMGR": "QMGR"}
     to_ignore = ['CURDEPTH', 'IPPROCS', 'OPPROCS', 'LPIPROCS', 'LOPPROCS', 'ALTDATE', 'ALTTIME', 'CRDATE', 'CRTIME']
     
-    # --- NETTOYAGE DES ÉLÉMENTS POLLUANTS ---
-    # On découpe le texte par les codes AMQ pour isoler chaque objet
-    # La regex cherche "AMQ" suivi de n'importe quoi jusqu'au début de la conf suivante
+    # 1. Découpage par les codes AMQ pour séparer chaque canal
+    # On utilise re.split pour créer une liste d'objets propres
     raw_blocks = re.split(r'AMQ\d{4}:.*?\n', input_text)
     
     final_output = []
     
     for block in raw_blocks:
-        # On ignore le bloc s'il est vide ou s'il ne contient que l'invite "MQSC >"
+        # Nettoyage des résidus OutsideView et invite MQSC
         block = block.replace("MQSC >", "").strip()
-        if not block:
+        if not block or len(block) < 10:
             continue
             
-        # --- LOGIQUE DE PARSING (REGEX DYNAMIQUE) ---
-        pattern = r'([A-Z0-9]+)\s*\((.*?)\)|([A-Z0-9]{3,})'
-        matches = re.findall(pattern, block)
+        # 2. REGEX AMÉLIORÉE : 
+        # On capture les Clé(Valeur) ou Clé seule, même avec des sauts de ligne (\s*)
+        pattern = r'([A-Z0-9]{3,})\s*\((.*?)\)|([A-Z0-9]{5,})'
+        matches = re.findall(pattern, block, re.DOTALL)
         
         attrs = {}
         obj_name = ""
         actual_type = type_map.get(obj_type, "QLOCAL")
-        
-        # On vérifie si on a bien trouvé l'objet attendu dans ce bloc
         found_main_obj = False
         
         for m in matches:
             key = m[0] if m[0] else m[2]
             val = m[1] if m[0] else None
             
-            if key in to_ignore: continue
+            if not key or key in to_ignore: 
+                continue
+                
             clean_val = "" if (val is None or val.strip() == "") else val.strip()
 
+            # Identification du nom (ex: CHANNEL(CH.MSDD.MT01))
             if key == obj_type:
                 obj_name = clean_val
                 found_main_obj = True
                 continue
-            if key == "TYPE" and obj_type == "QUEUE":
+                
+            # Identification spécifique du type (SDR, RCVR, SVRCONN...)
+            if key == "CHLTYPE" or (key == "TYPE" and obj_type == "QUEUE"):
                 actual_type = clean_val
-                continue
+                if obj_type == "QUEUE": continue # On ne garde pas TYPE pour les queues, on l'utilise pour le DEFINE
             
+            # Stockage des attributs
             attrs[key] = f"({clean_val})" if val is not None else ""
 
-        # Si le bloc ne contient pas l'objet sélectionné, on passe au suivant
         if not found_main_obj:
             continue
 
-        # --- RECONSTRUCTION ---
-        header = f"ALTER QMGR +" if obj_type == "QMGR" else f"DEFINE {actual_type}({obj_name}) +"
-        command = [header]
-
+        # 3. RECONSTRUCTION DU SCRIPT V8
+        # Pour les Channels, on précise le CHLTYPE juste après le nom
         if obj_type == "CHANNEL":
-            attrs["MCAUSER"] = "(MQM.ADMIN2)"
+            header = f"DEFINE CHANNEL({obj_name}) CHLTYPE({actual_type}) +"
+            attrs["MCAUSER"] = "(MQM.ADMIN)" # Ta règle de sécurité
+            # On supprime CHLTYPE des attributs car il est déjà dans le header
+            attrs.pop("CHLTYPE", None)
+        elif obj_type == "QMGR":
+            header = "ALTER QMGR +"
+        else:
+            header = f"DEFINE {actual_type}({obj_name}) +"
 
+        command = [header]
+        
+        # Ajout de tous les attributs capturés
         attr_list = list(attrs.items())
         for i, (k, v) in enumerate(attr_list):
             command.append(f"   {k}{v} +")
 
+        # Conclusion de la commande
         if obj_type != "QMGR":
             command.append("   REPLACE")
         else:
