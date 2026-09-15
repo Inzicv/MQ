@@ -92,7 +92,7 @@ def _convert_object(obj: MQObject, catalogue: dict, notes: list[ConversionNote])
     )
 
 
-def convert(parse_result: ParseResult, catalogue: dict, include_system: bool = False) -> ConversionResult:
+def convert(parse_result: ParseResult, catalogue: dict, include_system: bool = True) -> ConversionResult:
     """Convertit tous les objets d'un ParseResult V5.3 vers leurs équivalents V8.1.
 
     Ne modifie jamais silencieusement un attribut inconnu du catalogue : il est
