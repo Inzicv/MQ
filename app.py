@@ -34,15 +34,7 @@ st.caption(
 with st.sidebar:
     st.header("Options")
     replace = st.checkbox("Ajouter REPLACE aux DEFINE", value=False)
-    include_system = st.checkbox(
-        "Inclure les objets SYSTEM.*",
-        value=True,
-        help=(
-            "Décoché seulement si tu es sûre que le crtmqm cible recrée tout à "
-            "l'identique (ex: SYSTEM.MQEXPLORER.REPLY.MODEL, nécessaire à MQ "
-            "Explorer). Coché par défaut : rien n'est laissé de côté."
-        ),
-    )
+    include_system = st.checkbox("Inclure les objets SYSTEM.*", value=False)
     source_machine = st.text_input("Machine source (info, pour l'en-tête des fichiers)", value="ISIS")
     st.divider()
     mode = st.radio("Mode", ["Conversion", "Validation croisée (vs capture V8.1 réelle)"])
