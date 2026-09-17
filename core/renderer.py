@@ -13,9 +13,15 @@ _MAX_LINE = 72
 
 _SAFE_UNQUOTED_RE = re.compile(r"^[A-Za-z0-9_.\-/*]+$")
 
+# DESCR est un attribut "chaîne" MQSC : même un mot unique sans espace
+# (ex: DESCR(Channe)) doit être entre quotes sur le runmqsc NonStop de ce
+# parc, sous peine d'erreur de syntaxe à l'injection -- constaté en
+# conditions réelles.
+_ALWAYS_QUOTE = {"DESCR"}
 
-def _quote(value: str) -> str:
-    if _SAFE_UNQUOTED_RE.match(value):
+
+def _quote(value: str, force: bool = False) -> str:
+    if not force and _SAFE_UNQUOTED_RE.match(value):
         return value
     return "'" + value.replace("'", "''") + "'"
 
@@ -23,7 +29,7 @@ def _quote(value: str) -> str:
 def format_attr(attr: MQAttribute) -> str:
     if attr.is_flag:
         return attr.name
-    return f"{attr.name}({_quote(attr.value)})"
+    return f"{attr.name}({_quote(attr.value, force=attr.name in _ALWAYS_QUOTE)})"
 
 
 def _wrap_command(head: str, params: list[str]) -> list[str]:
