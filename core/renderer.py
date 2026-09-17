@@ -27,13 +27,13 @@ def format_attr(attr: MQAttribute) -> str:
 
 
 def _wrap_command(head: str, params: list[str]) -> list[str]:
-    """Un attribut par ligne, continuation `+`, indentation constante à 5 espaces."""
+    """Un attribut par ligne, continuation `+`, sans indentation."""
     if not params:
         return [head]
     lines = [f"{head} +"]
     last = len(params) - 1
     for i, p in enumerate(params):
-        line = f"     {p}"
+        line = p
         if i != last:
             line += " +"
         lines.append(line)
