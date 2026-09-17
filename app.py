@@ -33,7 +33,11 @@ st.caption(
 
 with st.sidebar:
     st.header("Options")
-    replace = st.checkbox("Ajouter REPLACE aux DEFINE", value=False)
+    replace = st.checkbox(
+        "Ajouter REPLACE aux DEFINE",
+        value=True,
+        help="Coché par défaut : une réinjection après une erreur ne bute pas sur les objets déjà créés.",
+    )
     include_system = st.checkbox("Inclure les objets SYSTEM.*", value=False)
     source_machine = st.text_input("Machine source (info, pour l'en-tête des fichiers)", value="ISIS")
     st.divider()
