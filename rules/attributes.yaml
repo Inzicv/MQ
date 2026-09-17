@@ -138,6 +138,7 @@ qlocal:
     - IPPROCS
     - OPPROCS
     - TYPE
+    - DEFTYPE
   renamed: {}
   removed: []
   flags:
@@ -164,7 +165,6 @@ qlocal:
     - DEFPSIST
     - DEFREADA
     - DEFSOPT
-    - DEFTYPE
     - DESCR
     - DISTL
     - GET
@@ -202,6 +202,7 @@ qmodel:
     - ALTDATE
     - ALTTIME
     - TYPE
+    - DEFTYPE
   renamed: {}
   removed: []
   flags:
@@ -222,7 +223,6 @@ qmodel:
     - DEFPSIST
     - DEFREADA
     - DEFSOPT
-    - DEFTYPE
     - DESCR
     - DISTL
     - GET
