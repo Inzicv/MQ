@@ -37,7 +37,13 @@ def test_queues_file_order_is_qlocal_qmodel_qalias_qremote():
 def test_queues_file_uses_replace_when_requested():
     catalogue, parse_result, result = _convert()
     text = render_queues_file(result, catalogue, parse_result.source_qmgr, "ISIS", replace=True)
-    assert "DEFINE QLOCAL(QL.APPLI.TEST) REPLACE" in text
+    # REPLACE est le dernier "attribut" de la commande, sur sa propre ligne,
+    # pas collé au nom de l'objet sur la première ligne.
+    assert "DEFINE QLOCAL(QL.APPLI.TEST) +" in text
+    block = text[text.index("DEFINE QLOCAL(QL.APPLI.TEST)"):]
+    block = block[: block.index("\n\n")]
+    assert block.rstrip().endswith("REPLACE")
+    assert " REPLACE +" not in block
 
 
 def test_channels_file_grouped_by_chltype_in_order():

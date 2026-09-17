@@ -48,8 +48,7 @@ def render_object(obj: MQObject, catalogue: dict, replace: bool) -> list[str]:
         head = "ALTER QMGR"
     else:
         define_cmd = rules["define_cmd"]
-        replace_kw = " REPLACE" if replace else ""
-        head = f"DEFINE {define_cmd}({_quote(obj.name)}){replace_kw}"
+        head = f"DEFINE {define_cmd}({_quote(obj.name)})"
 
     params: list[str] = []
     if obj.obj_type == "CHANNEL" and obj.chltype:
@@ -66,6 +65,9 @@ def render_object(obj: MQObject, catalogue: dict, replace: bool) -> list[str]:
             # dans le rapport et le README.
             continue
         params.append(format_attr(attr))
+
+    if replace and obj.obj_type != "QMGR":
+        params.append("REPLACE")
 
     return _wrap_command(head, params)
 
