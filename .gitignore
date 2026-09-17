@@ -1,0 +1,22 @@
+# Confs MQ réelles -- jamais dans le repo (noms de QM, canaux, hosts, comptes Guardian)
+exemple*/
+*.mqsc
+MT0*.log
+MT0*CNF.log
+*ISISCNF*
+*LEIACNF*
+*ATLASCNF*
+*PADMECNF*
+
+# PDF / manuels IBM (gros fichiers, pas de code)
+*.pdf
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Streamlit
+.streamlit/secrets.toml

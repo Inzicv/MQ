@@ -1,0 +1,706 @@
+# Catalogue d'attributs MQ V5.3 (NonStop, série J) -> V8.1 (NonStop, série L)
+#
+# Seedé le 2026-09-15 à partir de deux captures runmqsc réelles sur le QM MT03 :
+#   - ISIS  (V5.3, source)  : DISPLAY QMGR/QLOCAL/QALIAS/QREMOTE/QMODEL/CHANNEL/PROCESS/NAMELIST ALL
+#   - LEIA  (V8.1, cible)   : mêmes commandes, QM déjà converti -> vérité terrain
+#
+# Pour chaque type d'objet :
+#   name_attr   : l'attribut de sortie DISPLAY qui porte le nom de l'objet
+#   define_cmd  : le mot-clé MQSC utilisé pour DEFINE/ALTER
+#   runtime     : attributs présents en sortie DISPLAY mais interdits en DEFINE/ALTER
+#                 (générés par le QM : dates, compteurs, TYPE implicite...)
+#   renamed     : attributs V5.3 dont le nom a changé en V8.1 (mapping ancien -> nouveau)
+#   removed     : attributs V5.3 qui n'existent plus du tout en V8.1
+#   valid       : liste blanche des attributs DEFINE/ALTER valides en V8.1 pour ce type
+#                 (issue de la capture LEIA réelle -- vérité terrain).
+#                 Un attribut source absent de cette liste (et absent de runtime/renamed)
+#                 n'est jamais supprimé silencieusement : il est conservé dans la sortie
+#                 et signalé en warning dans le rapport ("attribut inconnu du catalogue").
+#   flags       : attributs booléens MQSC sans parenthèses (paires de mots-clés opposés).
+#                 Les deux mots-clés de la paire sont acceptés en entrée comme en sortie.
+#   forced      : attributs toujours forcés à une valeur donnée en sortie, quelle que soit
+#                 la valeur (ou l'absence) côté source.
+#   review      : attributs V8.1 absents de V5.3, à décision explicite (non ajoutés
+#                 automatiquement -- si omis, le DEFINE V8.1 prend sa valeur par défaut,
+#                 qui correspond en général à ce qu'affiche LEIA). Documentés dans le
+#                 rapport, jamais injectés silencieusement dans le MQSC généré.
+
+qmgr:
+  name_attr: QMNAME
+  define_cmd: null            # QMGR ne se DEFINE jamais : toujours ALTER QMGR
+  runtime:
+    - CRDATE
+    - CRTIME
+    - ALTDATE
+    - ALTTIME
+    - QMID
+    - PLATFORM
+    - VERSION
+    - CMDLEVEL
+  renamed: {}
+  removed: []
+  flags:
+    - [SYNCPT, NOSYNCPT]
+  forced:
+    SCMDSERV: QMGR
+  review:
+    - CERTLABL
+    - CHLAUTH
+    - CONNAUTH
+    - SSLEV
+  valid:
+    - ACCTCONO
+    - ACCTINT
+    - ACCTMQI
+    - ACCTQ
+    - ACTIVREC
+    - ACTVCONO
+    - ACTVTRC
+    - AUTHOREV
+    - CCSID
+    - CERTLABL
+    - CERTVPOL
+    - CHAD
+    - CHADEV
+    - CHADEXIT
+    - CHLEV
+    - CHLAUTH
+    - CLWLDATA
+    - CLWLEXIT
+    - CLWLLEN
+    - CLWLMRUC
+    - CLWLUSEQ
+    - CMDEV
+    - COMMANDQ
+    - CONFIGEV
+    - CONNAUTH
+    - CUSTOM
+    - DEADQ
+    - DEFCLXQ
+    - DEFXMITQ
+    - DESCR
+    - DISTL
+    - INHIBTEV
+    - IPADDRV
+    - LOCALEV
+    - LOGGEREV
+    - MARKINT
+    - MAXHANDS
+    - MAXMSGL
+    - MAXPROPL
+    - MAXPRTY
+    - MAXUMSGS
+    - MONACLS
+    - MONCHL
+    - MONQ
+    - PARENT
+    - PERFMEV
+    - PSMODE
+    - PSCLUS
+    - PSNPMSG
+    - PSNPRES
+    - PSRTYCNT
+    - PSSYNCPT
+    - REMOTEEV
+    - REPOS
+    - REPOSNL
+    - REVDNS
+    - ROUTEREC
+    - SCHINIT
+    - SCMDSERV
+    - SPLCAP
+    - SSLCRLNL
+    - SSLCRYP
+    - SSLEV
+    - SSLFIPS
+    - SSLKEYR
+    - SSLRKEYC
+    - STATACLS
+    - STATCHL
+    - STATINT
+    - STATMQI
+    - STATQ
+    - STRSTPEV
+    - SUITEB
+    - TREELIFE
+    - TRIGINT
+    - XRCAP
+
+qlocal:
+  name_attr: QUEUE
+  define_cmd: QLOCAL
+  runtime:
+    - CRDATE
+    - CRTIME
+    - ALTDATE
+    - ALTTIME
+    - CURDEPTH
+    - IPPROCS
+    - OPPROCS
+    - TYPE
+    - DEFTYPE
+  renamed: {}
+  removed: []
+  flags:
+    - [SHARE, NOSHARE]
+    - [HARDENBO, NOHARDENBO]
+    - [TRIGGER, NOTRIGGER]
+  forced: {}
+  review:
+    - PROPCTL
+  valid:
+    - ACCTQ
+    - BOQNAME
+    - BOTHRESH
+    - CLCHNAME
+    - CLUSNL
+    - CLUSTER
+    - CLWLPRTY
+    - CLWLRANK
+    - CLWLUSEQ
+    - CUSTOM
+    - DEFBIND
+    - DEFPRESP
+    - DEFPRTY
+    - DEFPSIST
+    - DEFREADA
+    - DEFSOPT
+    - DESCR
+    - DISTL
+    - GET
+    - INITQ
+    - MAXDEPTH
+    - MAXMSGL
+    - MONQ
+    - MSGDLVSQ
+    - NPMCLASS
+    - PROCESS
+    - PROPCTL
+    - PUT
+    - QDEPTHHI
+    - QDEPTHLO
+    - QDPHIEV
+    - QDPLOEV
+    - QDPMAXEV
+    - QSVCIEV
+    - QSVCINT
+    - RETINTVL
+    - SCOPE
+    - STATQ
+    - TRIGDATA
+    - TRIGDPTH
+    - TRIGMPRI
+    - TRIGTYPE
+    - USAGE
+
+qmodel:
+  name_attr: QUEUE
+  define_cmd: QMODEL
+  runtime:
+    - CRDATE
+    - CRTIME
+    - ALTDATE
+    - ALTTIME
+    - TYPE
+    - DEFTYPE
+  renamed: {}
+  removed: []
+  flags:
+    - [SHARE, NOSHARE]
+    - [HARDENBO, NOHARDENBO]
+    - [TRIGGER, NOTRIGGER]
+  forced: {}
+  review:
+    - PROPCTL
+  valid:
+    - ACCTQ
+    - BOQNAME
+    - BOTHRESH
+    - CLCHNAME
+    - CUSTOM
+    - DEFPRESP
+    - DEFPRTY
+    - DEFPSIST
+    - DEFREADA
+    - DEFSOPT
+    - DESCR
+    - DISTL
+    - GET
+    - INITQ
+    - MAXDEPTH
+    - MAXMSGL
+    - MONQ
+    - MSGDLVSQ
+    - NPMCLASS
+    - PROCESS
+    - PROPCTL
+    - PUT
+    - QDEPTHHI
+    - QDEPTHLO
+    - QDPHIEV
+    - QDPLOEV
+    - QDPMAXEV
+    - QSVCIEV
+    - QSVCINT
+    - RETINTVL
+    - STATQ
+    - TRIGDATA
+    - TRIGDPTH
+    - TRIGMPRI
+    - TRIGTYPE
+    - USAGE
+
+qalias:
+  name_attr: QUEUE
+  define_cmd: QALIAS
+  runtime:
+    - ALTDATE
+    - ALTTIME
+    - TYPE
+  renamed:
+    TARGQ: TARGET
+  removed: []
+  flags: []
+  forced: {}
+  review:
+    - PROPCTL
+    - TARGTYPE
+  valid:
+    - CLUSNL
+    - CLUSTER
+    - CLWLPRTY
+    - CLWLRANK
+    - CUSTOM
+    - DEFBIND
+    - DEFPRESP
+    - DEFPRTY
+    - DEFPSIST
+    - DEFREADA
+    - DESCR
+    - GET
+    - PROPCTL
+    - PUT
+    - SCOPE
+    - TARGET
+    - TARGTYPE
+
+qremote:
+  name_attr: QUEUE
+  define_cmd: QREMOTE
+  runtime:
+    - ALTDATE
+    - ALTTIME
+    - TYPE
+  renamed: {}
+  removed: []
+  flags: []
+  forced: {}
+  review: []
+  valid:
+    - CLUSNL
+    - CLUSTER
+    - CLWLPRTY
+    - CLWLRANK
+    - CUSTOM
+    - DEFBIND
+    - DEFPRESP
+    - DEFPRTY
+    - DEFPSIST
+    - DESCR
+    - PUT
+    - RNAME
+    - RQMNAME
+    - SCOPE
+    - XMITQ
+
+channel:
+  name_attr: CHANNEL
+  define_cmd: CHANNEL   # + CHLTYPE(<type>) obligatoire dans la commande
+  chltype_attr: CHLTYPE
+  runtime:
+    - ALTDATE
+    - ALTTIME
+  renamed: {}
+  removed: []
+  flags: []
+  forced: {}
+  review:
+    common:
+      - CERTLABL
+      - COMPHDR
+      - COMPMSG
+      - MONCHL
+      - RESETSEQ
+      - USEDLQ
+      - STATCHL
+    SVRCONN:
+      - MAXINST
+      - MAXINSTC
+      - SHARECNV
+      - SSLCIPH
+  # attributs valides par CHLTYPE (vérité terrain LEIA V8.1, complété pour les
+  # types SYSTEM.DEF.* rares -- RQSTR/SVR/CLUSSDR/CLUSRCVR/CLNTCONN -- par les
+  # objets SYSTEM.DEF.* présents des deux côtés, eux aussi vérité terrain)
+  valid_by_type:
+    RCVR:
+      - BATCHSZ
+      - CERTLABL
+      - COMPHDR
+      - COMPMSG
+      - DESCR
+      - HBINT
+      - KAINT
+      - MAXMSGL
+      - MCAUSER
+      - MONCHL
+      - MRDATA
+      - MREXIT
+      - MRRTY
+      - MRTMR
+      - MSGDATA
+      - MSGEXIT
+      - NPMSPEED
+      - PUTAUT
+      - RCVDATA
+      - RCVEXIT
+      - RESETSEQ
+      - SCYDATA
+      - SCYEXIT
+      - SENDDATA
+      - SENDEXIT
+      - SEQWRAP
+      - SSLCAUTH
+      - SSLCIPH
+      - SSLPEER
+      - STATCHL
+      - TRPTYPE
+      - USEDLQ
+    SDR:
+      - BATCHHB
+      - BATCHINT
+      - BATCHLIM
+      - BATCHSZ
+      - CERTLABL
+      - COMPHDR
+      - COMPMSG
+      - CONNAME
+      - CONVERT
+      - DESCR
+      - DISCINT
+      - HBINT
+      - KAINT
+      - LOCLADDR
+      - LONGRTY
+      - LONGTMR
+      - MAXMSGL
+      - MCANAME
+      - MCATYPE
+      - MCAUSER
+      - MODENAME
+      - MONCHL
+      - MSGDATA
+      - MSGEXIT
+      - NPMSPEED
+      - PASSWORD
+      - PROPCTL
+      - RCVDATA
+      - RCVEXIT
+      - RESETSEQ
+      - SCYDATA
+      - SCYEXIT
+      - SENDDATA
+      - SENDEXIT
+      - SEQWRAP
+      - SHORTRTY
+      - SHORTTMR
+      - SSLCIPH
+      - SSLPEER
+      - STATCHL
+      - TPNAME
+      - TRPTYPE
+      - USEDLQ
+      - USERID
+      - XMITQ
+    SVRCONN:
+      - CERTLABL
+      - COMPHDR
+      - COMPMSG
+      - DESCR
+      - DISCINT
+      - HBINT
+      - KAINT
+      - MAXINST
+      - MAXINSTC
+      - MAXMSGL
+      - MCAUSER
+      - MONCHL
+      - RCVDATA
+      - RCVEXIT
+      - SCYDATA
+      - SCYEXIT
+      - SENDDATA
+      - SENDEXIT
+      - SHARECNV
+      - SSLCAUTH
+      - SSLCIPH
+      - SSLPEER
+      - TRPTYPE
+    RQSTR:
+      - BATCHSZ
+      - CERTLABL
+      - COMPHDR
+      - COMPMSG
+      - CONNAME
+      - DESCR
+      - HBINT
+      - KAINT
+      - LOCLADDR
+      - MAXMSGL
+      - MCANAME
+      - MCATYPE
+      - MCAUSER
+      - MODENAME
+      - MONCHL
+      - MRDATA
+      - MREXIT
+      - MRRTY
+      - MRTMR
+      - MSGDATA
+      - MSGEXIT
+      - NPMSPEED
+      - PASSWORD
+      - PUTAUT
+      - RCVDATA
+      - RCVEXIT
+      - RESETSEQ
+      - SCYDATA
+      - SCYEXIT
+      - SENDDATA
+      - SENDEXIT
+      - SEQWRAP
+      - SSLCAUTH
+      - SSLCIPH
+      - SSLPEER
+      - STATCHL
+      - TPNAME
+      - TRPTYPE
+      - USEDLQ
+      - USERID
+    SVR:
+      - BATCHHB
+      - BATCHINT
+      - BATCHLIM
+      - BATCHSZ
+      - CERTLABL
+      - COMPHDR
+      - COMPMSG
+      - CONNAME
+      - CONVERT
+      - DESCR
+      - DISCINT
+      - HBINT
+      - KAINT
+      - LOCLADDR
+      - LONGRTY
+      - LONGTMR
+      - MAXMSGL
+      - MCANAME
+      - MCATYPE
+      - MCAUSER
+      - MODENAME
+      - MONCHL
+      - MSGDATA
+      - MSGEXIT
+      - NPMSPEED
+      - PASSWORD
+      - PROPCTL
+      - RCVDATA
+      - RCVEXIT
+      - RESETSEQ
+      - SCYDATA
+      - SCYEXIT
+      - SENDDATA
+      - SENDEXIT
+      - SEQWRAP
+      - SHORTRTY
+      - SHORTTMR
+      - SSLCAUTH
+      - SSLCIPH
+      - SSLPEER
+      - STATCHL
+      - TPNAME
+      - TRPTYPE
+      - USEDLQ
+      - USERID
+      - XMITQ
+    CLUSSDR:
+      - BATCHHB
+      - BATCHINT
+      - BATCHLIM
+      - BATCHSZ
+      - CLUSNL
+      - CLUSTER
+      - CLWLPRTY
+      - CLWLRANK
+      - CLWLWGHT
+      - COMPHDR
+      - COMPMSG
+      - CONNAME
+      - CONVERT
+      - DESCR
+      - DISCINT
+      - HBINT
+      - KAINT
+      - LOCLADDR
+      - LONGRTY
+      - LONGTMR
+      - MAXMSGL
+      - MCANAME
+      - MCATYPE
+      - MCAUSER
+      - MODENAME
+      - MONCHL
+      - MSGDATA
+      - MSGEXIT
+      - NPMSPEED
+      - PASSWORD
+      - PROPCTL
+      - RCVDATA
+      - RCVEXIT
+      - RESETSEQ
+      - SCYDATA
+      - SCYEXIT
+      - SENDDATA
+      - SENDEXIT
+      - SEQWRAP
+      - SHORTRTY
+      - SHORTTMR
+      - SSLCIPH
+      - SSLPEER
+      - STATCHL
+      - TPNAME
+      - TRPTYPE
+      - USEDLQ
+      - USERID
+    CLUSRCVR:
+      - BATCHHB
+      - BATCHINT
+      - BATCHLIM
+      - BATCHSZ
+      - CERTLABL
+      - CLUSNL
+      - CLUSTER
+      - CLWLPRTY
+      - CLWLRANK
+      - CLWLWGHT
+      - COMPHDR
+      - COMPMSG
+      - CONNAME
+      - CONVERT
+      - DESCR
+      - DISCINT
+      - HBINT
+      - KAINT
+      - LOCLADDR
+      - LONGRTY
+      - LONGTMR
+      - MAXMSGL
+      - MCANAME
+      - MCATYPE
+      - MCAUSER
+      - MODENAME
+      - MONCHL
+      - MRDATA
+      - MREXIT
+      - MRRTY
+      - MRTMR
+      - MSGDATA
+      - MSGEXIT
+      - NETPRTY
+      - NPMSPEED
+      - PUTAUT
+      - RCVDATA
+      - RCVEXIT
+      - RESETSEQ
+      - SCYDATA
+      - SCYEXIT
+      - SENDDATA
+      - SENDEXIT
+      - SEQWRAP
+      - SHORTRTY
+      - SHORTTMR
+      - SSLCAUTH
+      - SSLCIPH
+      - SSLPEER
+      - STATCHL
+      - TPNAME
+      - TRPTYPE
+      - USEDLQ
+    CLNTCONN:
+      - AFFINITY
+      - CERTLABL
+      - CLNTWGHT
+      - COMPHDR
+      - COMPMSG
+      - CONNAME
+      - DEFRECON
+      - DESCR
+      - HBINT
+      - KAINT
+      - LOCLADDR
+      - MAXMSGL
+      - MODENAME
+      - PASSWORD
+      - QMNAME
+      - RCVDATA
+      - RCVEXIT
+      - SCYDATA
+      - SCYEXIT
+      - SENDDATA
+      - SENDEXIT
+      - SHARECNV
+      - SSLCIPH
+      - SSLPEER
+      - TPNAME
+      - TRPTYPE
+      - USERID
+
+process:
+  name_attr: PROCESS
+  define_cmd: PROCESS
+  runtime:
+    - ALTDATE
+    - ALTTIME
+  renamed: {}
+  removed: []
+  flags: []
+  forced: {}
+  review: []
+  valid:
+    - APPLTYPE
+    - APPLICID
+    - ENVRDATA
+    - USERDATA
+    - DESCR
+
+namelist:
+  name_attr: NAMELIST
+  define_cmd: NAMELIST
+  runtime:
+    - ALTDATE
+    - ALTTIME
+    - NAMCOUNT
+  renamed: {}
+  removed: []
+  flags: []
+  forced: {}
+  review: []
+  valid:
+    - DESCR
+    - NAMES
+
+# Ordre d'injection imposé (dépendances : QALIAS/QREMOTE référencent des
+# noms qui doivent déjà exister -- QMODEL n'a pas de dépendance mais on le
+# garde après QLOCAL par cohérence de lecture).
+queue_order: [QLOCAL, QMODEL, QALIAS, QREMOTE]
+channel_order: [SDR, RCVR, SVRCONN, RQSTR, SVR, CLUSSDR, CLUSRCVR, CLNTCONN]
