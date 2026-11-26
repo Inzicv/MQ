@@ -1,0 +1,193 @@
+
+
+================================ OV Log Start ================================
+                           Wed Jan 01 00:00:00 2025
+==============================================================================
+
+DISPLAY QMGR ALLDISPLAY QLOCAL(*) ALLDISPLAY QALIAS(*) ALLDISPLAY QREMOTE(
+*) ALLDISPLAY QMODEL(*) ALLDISPLAY CHANNEL(*) ALLDISPLAY PROCESS(*) ALLDISPLAY N
+AMELIST(*) ALL                                                                                                                                                                      DISPLAY QMGR ALL
+     2 : DISPLAY QMGR ALL
+AMQ8408: Display Queue Manager details.
+   DESCR( )                                DEADQ(TEST.DEAD.QUEUE)
+   DEFXMITQ( )                             CHADEXIT( )
+   CLWLEXIT( )                             CLWLDATA( )
+   REPOS( )                                REPOSNL( )
+   SSLKEYR(/var/mqm/qmgrs/TEST/ssl)         SSLCRLNL( )
+   SSLCRYP( )                              COMMANDQ(SYSTEM.ADMIN.COMMAND.QUEUE)
+   QMNAME(TEST)                            CRDATE(2018-01-10)
+   CRTIME(10.58.25)                        ALTDATE(2022-04-04)
+   ALTTIME(15.19.26)                       QMID(TEST_2018-01-10_10.58.25)
+   TRIGINT(999999999)                      MAXHANDS(256)
+   MAXUMSGS(10000)                         AUTHOREV(DISABLED)
+   INHIBTEV(DISABLED)                      LOCALEV(DISABLED)
+   REMOTEEV(DISABLED)                      PERFMEV(ENABLED)
+   STRSTPEV(ENABLED)                       CHAD(DISABLED)
+   CHADEV(DISABLED)                        CLWLLEN(100)
+   MAXMSGL(4194304)                        CCSID(819)
+   MAXPRTY(9)                              CMDLEVEL(530)
+   PLATFORM(13)                            SYNCPT
+   DISTL(YES)
+MQSC >DISPLAY QLOCAL(*) ALL
+     3 : DISPLAY QLOCAL(*) ALL
+AMQ8409: Display Queue details.
+   DESCR(File applicative de test)         PROCESS( )
+   BOQNAME( )                              INITQ(SYSTEM.CHANNEL.INITQ)
+   TRIGDATA( )                             CLUSTER( )
+   CLUSNL( )                               QUEUE(QL.APPLI.TEST)
+   CRDATE(2018-01-10)                      CRTIME(10.58.51)
+   ALTDATE(2018-01-10)                     ALTTIME(10.58.51)
+   GET(ENABLED)                            PUT(ENABLED)
+   DEFPRTY(0)                              DEFPSIST(YES)
+   MAXDEPTH(5000)                          MAXMSGL(4194304)
+   BOTHRESH(0)                             SHARE
+   DEFSOPT(SHARED)                         HARDENBO
+   MSGDLVSQ(PRIORITY)                      RETINTVL(999999999)
+   USAGE(NORMAL)                           NOTRIGGER
+   TRIGTYPE(FIRST)                         TRIGDPTH(1)
+   TRIGMPRI(0)                             QDEPTHHI(80)
+   QDEPTHLO(20)                            QDPMAXEV(ENABLED)
+   QDPHIEV(DISABLED)                       QDPLOEV(DISABLED)
+   QSVCINT(999999999)                      QSVCIEV(NONE)
+   DISTL(NO)                               NPMCLASS(NORMAL)
+   DEFTYPE(PREDEFINED)                     TYPE(QLOCAL)
+   SCOPE(QMGR)                             DEFBIND(OPEN)
+   IPPROCS(0)                              OPPROCS(0)
+   CURDEPTH(0)
+AMQ8409: Display Queue details.
+   DESCR(WebSphere MQ Default Model Queue) PROCESS( )
+   BOQNAME( )                              INITQ( )
+   TRIGDATA( )                             CLUSTER( )
+   CLUSNL( )                               QUEUE(SYSTEM.DEFAULT.LOCAL.QUEUE)
+   CRDATE(2018-01-10)                      CRTIME(10.58.28)
+   ALTDATE(2018-01-10)                     ALTTIME(10.58.28)
+   GET(ENABLED)                            PUT(ENABLED)
+   DEFPRTY(0)                              DEFPSIST(NO)
+   MAXDEPTH(5000)                          MAXMSGL(4194304)
+   BOTHRESH(0)                             NOSHARE
+   DEFSOPT(EXCL)                           HARDENBO
+   MSGDLVSQ(PRIORITY)                      RETINTVL(999999999)
+   USAGE(NORMAL)                           NOTRIGGER
+   TRIGTYPE(FIRST)                         TRIGDPTH(1)
+   TRIGMPRI(0)                             QDEPTHHI(80)
+   QDEPTHLO(20)                            QDPMAXEV(ENABLED)
+   QDPHIEV(DISABLED)                       QDPLOEV(DISABLED)
+   QSVCINT(999999999)                      QSVCIEV(NONE)
+   DISTL(NO)                               NPMCLASS(NORMAL)
+   DEFTYPE(PREDEFINED)                     TYPE(QLOCAL)
+   SCOPE(QMGR)                             DEFBIND(OPEN)
+   IPPROCS(0)                              OPPROCS(0)
+   CURDEPTH(0)
+MQSC >DISPLAY QALIAS(*) ALL
+     4 : DISPLAY QALIAS(*) ALL
+AMQ8409: Display Queue details.
+   DESCR(Alias de test)                    TARGQ(QL.APPLI.TEST)
+   CLUSTER( )                              CLUSNL( )
+   QUEUE(QA.APPLI.TEST)                    ALTDATE(2018-01-10)
+   ALTTIME(10.58.51)                       GET(ENABLED)
+   PUT(ENABLED)                            DEFPRTY(0)
+   DEFPSIST(YES)                           SCOPE(QMGR)
+   DEFBIND(OPEN)                           TYPE(QALIAS)
+MQSC >DISPLAY QREMOTE(*) ALL
+     5 : DISPLAY QREMOTE(*) ALL
+AMQ8409: Display Queue details.
+   DESCR(Remote de test)
+   RNAME(QL.DISTANT.TEST)
+   RQMNAME(DISTANT)                        XMITQ(DISTANT)
+   CLUSTER( )                              CLUSNL( )
+   QUEUE(QR.APPLI.TEST)                    ALTDATE(2018-01-10)
+   ALTTIME(10.58.51)                       PUT(ENABLED)
+   DEFPRTY(0)                              DEFPSIST(NO)
+   SCOPE(QMGR)                             DEFBIND(OPEN)
+   TYPE(QREMOTE)
+MQSC >DISPLAY QMODEL(*) ALL
+     6 : DISPLAY QMODEL(*) ALL
+AMQ8409: Display Queue details.
+   DESCR(WebSphere MQ Default Model Queue)
+   PROCESS( )                              BOQNAME( )
+   INITQ( )                                TRIGDATA( )
+   QUEUE(SYSTEM.DEFAULT.MODEL.QUEUE)       CRDATE(2018-01-10)
+   CRTIME(10.58.28)                        ALTDATE(2018-01-10)
+   ALTTIME(10.58.28)                       GET(ENABLED)
+   PUT(ENABLED)                            DEFPRTY(0)
+   DEFPSIST(NO)                            MAXDEPTH(5000)
+   MAXMSGL(4194304)                        BOTHRESH(0)
+   NOSHARE                                 DEFSOPT(EXCL)
+   HARDENBO                                MSGDLVSQ(PRIORITY)
+   RETINTVL(999999999)                     USAGE(NORMAL)
+   NOTRIGGER                               TRIGTYPE(FIRST)
+   TRIGDPTH(1)                             TRIGMPRI(0)
+   QDEPTHHI(80)                            QDEPTHLO(20)
+   QDPMAXEV(ENABLED)                       QDPHIEV(DISABLED)
+   QDPLOEV(DISABLED)                       QSVCINT(999999999)
+   QSVCIEV(NONE)                           DISTL(NO)
+   NPMCLASS(NORMAL)                        DEFTYPE(TEMPDYN)
+   TYPE(QMODEL)
+MQSC >DISPLAY CHANNEL(*) ALL
+     7 : DISPLAY CHANNEL(*) ALL
+AMQ8414: Display Channel details.
+   CHANNEL(CH.TEST.RCV)                    CHLTYPE(RCVR)
+   TRPTYPE(TCP)                            DESCR( )
+   BATCHSZ(50)                             SCYEXIT( )
+   SEQWRAP(999999999)                      MAXMSGL(4194304)
+   PUTAUT(DEF)                             SCYDATA( )
+   MREXIT( )                               MRDATA( )
+   MRRTY(10)                               MRTMR(1000)
+   HBINT(300)                              NPMSPEED(FAST)
+   SSLCIPH( )                              SSLCAUTH(REQUIRED)
+   KAINT(AUTO)                             MCAUSER( )
+   ALTDATE(2025-01-23)                     ALTTIME(11.50.09)
+   SSLPEER()
+   MSGEXIT( )
+   SENDEXIT( )
+   RCVEXIT( )
+   MSGDATA( )
+   SENDDATA( )
+   RCVDATA( )
+AMQ8414: Display Channel details.
+   CHANNEL(CH.TEST.SDR)                    CHLTYPE(SDR)
+   TRPTYPE(TCP)                            DESCR( )
+   XMITQ(DISTANT)                          MCANAME( )
+   MODENAME( )                             TPNAME( )
+   BATCHSZ(50)                             DISCINT(0)
+   SHORTRTY(10)                            SHORTTMR(60)
+   LONGRTY(999999999)                      LONGTMR(1200)
+   SCYEXIT( )                              SEQWRAP(999999999)
+   MAXMSGL(4194304)                        CONVERT(YES)
+   SCYDATA( )                              USERID( )
+   PASSWORD( )                             MCATYPE(PROCESS)
+   CONNAME(distant.host.example.net(1415))
+   HBINT(300)                              BATCHINT(0)
+   NPMSPEED(FAST)                          SSLCIPH( )
+AMQ8414: Display Channel details.
+   CHANNEL(CH.SVRCONN.TEST)                CHLTYPE(SVRCONN)
+   TRPTYPE(TCP)                            DESCR( )
+   SCYEXIT( )                              MAXMSGL(4194304)
+   SCYDATA( )                              HBINT(300)
+   SSLCIPH( )                              SSLCAUTH(REQUIRED)
+   KAINT(AUTO)                             MCAUSER( )
+   ALTDATE(2018-01-10)                     ALTTIME(10.59.09)
+   SSLPEER()
+   SENDEXIT( )
+   RCVEXIT( )
+   SENDDATA( )
+   RCVDATA( )
+MQSC >DISPLAY PROCESS(*) ALL
+     8 : DISPLAY PROCESS(*) ALL
+AMQ8407: Display Process details.
+   DESCR( )                                APPLICID( )
+   USERDATA(CH.TEST.SDR)                   ENVRDATA( )
+   PROCESS(PR.TEST.DISTANT)                ALTDATE(2018-01-10)
+   ALTTIME(10.59.06)                       APPLTYPE(NSK)
+MQSC >DISPLAY NAMELIST(*) ALL
+     9 : DISPLAY NAMELIST(*) ALL
+AMQ8550: Display namelist details.
+   DESCR( )
+   NAMES()                                 ALTDATE(2018-01-10)
+   ALTTIME(10.58.29)                       NAMELIST(SYSTEM.DEFAULT.NAMELIST)
+   NAMCOUNT(0)
+MQSC >
+
+================================ OV Log End ==================================
+                           Wed Jan 01 00:01:17 2025
+==============================================================================
